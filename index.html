@@ -630,7 +630,7 @@
 <!-- Hero -->
 <section class="hero">
     <div class="book-3d">
-        <img src="book.jpg" alt="Rising with Purpose Book Cover" class="book-cover" onerror="this.style.display='flex';this.outerHTML='<div style=\'width:220px;height:320px;background:linear-gradient(135deg,#6C63FF,#5149d6);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;text-align:center;padding:20px;font-family:Poppins,sans-serif;font-weight:700;box-shadow:-20px 20px 50px rgba(0,0,0,0.5);animation:float 4s ease-in-out infinite;\'>Rising with Purpose,<br>Power &amp; Influence</div>'">
+        <img src="front_boo_060031.png" alt="Rising with Purpose Book Cover" class="book-cover" onerror="this.style.display='flex';this.outerHTML='<div style=\'width:220px;height:320px;background:linear-gradient(135deg,#6C63FF,#5149d6);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;text-align:center;padding:20px;font-family:Poppins,sans-serif;font-weight:700;box-shadow:-20px 20px 50px rgba(0,0,0,0.5);animation:float 4s ease-in-out infinite;\'>Rising with Purpose,<br>Power &amp; Influence</div>'">
         <div class="book-badge">PDF<br>DIGITAL<br>COPY</div>
     </div>
     <div class="hero-text">
@@ -840,7 +840,7 @@
         <h2>Payment Successful! 🎉</h2>
         <p>Thank you, <strong id="successName"></strong>! Your purchase is confirmed. Click the button below to download your copy of <em>Rising with Purpose, Power & Influence</em>.</p>
         <div class="ref-code" id="refCode">Ref: ...</div>
-        <a class="download-btn" id="downloadBtn" href="UNDERSTANDING_PURPOSE1.pdf" download="Rising-with-Purpose-Power-and-Influence.pdf">
+        <a class="download-btn" id="downloadBtn" href="#" download="Rising-with-Purpose-Power-and-Influence.pdf" onclick="triggerDownload(event)">
             <i class="fas fa-download"></i> Download Your Book Now
         </a>
         <br>
@@ -879,7 +879,7 @@
     // ========= CONFIG =========
     const PAYSTACK_PUBLIC_KEY = 'pk_live_90480581e7cbec49120eea9a436c95110311cb6e';
     const BOOK_PRICE = 1500; // ₦1,500 per digital copy
-    const BOOK_FILE = 'UNDERSTANDING_PURPOSE1.pdf'; // The PDF file name on your server
+    const BOOK_FILE = 'UNDERSTANDING_PURPOSE1.pdf'; // Make sure this file is in the same Netlify folder
 
     function validateEmail(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -951,7 +951,6 @@
     function showSuccess(name, ref) {
         document.getElementById('successName').textContent = name;
         document.getElementById('refCode').textContent = 'Transaction Ref: ' + ref;
-        document.getElementById('downloadBtn').href = BOOK_FILE;
         document.getElementById('successOverlay').classList.add('show');
 
         // Reset button
@@ -960,14 +959,41 @@
         btn.innerHTML = '<i class="fas fa-lock"></i> Pay ₦1,500 & Download';
 
         // Auto-trigger download after short delay
-        setTimeout(function() {
-            const a = document.createElement('a');
-            a.href = BOOK_FILE;
-            a.download = 'Rising-with-Purpose-Power-and-Influence.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }, 1000);
+        setTimeout(triggerDownloadAuto, 1200);
+    }
+
+    function triggerDownload(e) {
+        e.preventDefault();
+        doDownload();
+    }
+
+    function triggerDownloadAuto() {
+        doDownload();
+    }
+
+    function doDownload() {
+        // Fetch the file as a blob to force a true download (avoids browser just opening the PDF)
+        fetch(BOOK_FILE)
+            .then(function(response) {
+                if (!response.ok) throw new Error('File not found');
+                return response.blob();
+            })
+            .then(function(blob) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'Rising-with-Purpose-Power-and-Influence.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(function(err) {
+                // Fallback: open in new tab if blob fetch fails
+                console.warn('Blob download failed, falling back to direct link:', err);
+                window.open(BOOK_FILE, '_blank');
+            });
     }
 
     function closeModal() {
